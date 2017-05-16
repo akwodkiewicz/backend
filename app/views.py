@@ -8,15 +8,30 @@ import pymongo
 
 @app.route('/')
 def hello_world():
-    return 'Available links: /api/adduser, /api/listusers, /api/listwatched/, /api/restartdb'
+    return '''Available links:
+    <ul>
+    <li>/api/adduser -- adds user 'guest'</li>
+    <li>/api/addpage -- adds guest's page 'brodkaR'</li>
+    <li>/api/test -- tests 'brodkaR' existence and getting hash from that website</li>
+    <li>/api/listusers</li>
+    <li>/api/listwatched</li>
+    <li>/api/restartdb</li>
+    <li>/api/graphql</li>
+    </ul>
+    You can test the GraphQL functionality by visiting: /api/graphql?query={YOUR_QUERY},
+    for example:
+    <ul>
+    <li>/api/graphql?query={user{_id, password, email}}</li>
+    <li> /api/graphql?query={watched_page(owner_name:"guest"){_id, owner_name, page_name, url, interval}}</li>
+    </ul>
+    '''
 
-
-@app.route('/qwerty')
-def show_collections():
-    collection = mongo.db.collection_names()
-    print('Is it working?', file=sys.stderr)
-    print(collection, file=sys.stderr)
-    return 'Check console for output'
+#@app.route('/qwerty')
+#def show_collections():
+#    collection = mongo.db.collection_names()
+#    print('Is it working?', file=sys.stderr)
+#    print(collection, file=sys.stderr)
+#    return 'Check console for output'
 
 
 @app.route('/adduser')

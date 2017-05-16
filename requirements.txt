@@ -1,6 +1,6 @@
 flask
 flask_pymongo
-Flask-PyMongo
 graphene
 beautifulsoup4
 requests
+flask_graphql
