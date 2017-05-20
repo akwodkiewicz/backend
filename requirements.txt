@@ -4,3 +4,4 @@ graphene
 beautifulsoup4
 requests
 flask_graphql
+PyJWT

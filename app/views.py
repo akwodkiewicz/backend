@@ -6,7 +6,6 @@ import base64
 import pymongo
 
 
-
 @app.route('/')
 def hello_world():
     return '''Available links:
@@ -48,10 +47,7 @@ def hello_world():
      mutation{
         NewWatchedPage(url:"www.mini.pw.edu.pl",page_name:"MiNi",owner_name:"guest")
         {
-            WatchedPage
-            {
-                url
-            }
+            success
         }
      }
      </li>
@@ -59,12 +55,7 @@ def hello_world():
      mutation{
          NewUser(username:"Jack",password:"somesha1hash",email:"jack@10minutemails.com")
          {
-            User
-            {
-                username,
-                password,
-                email
-            }
+            success
         }
      }
      </li>

@@ -3,7 +3,7 @@ from sys import stderr
 from graphene import relay
 from . import app, mongo
 from .views import list_users_page
-from .logic import add_to_watched_pages, delete_from_watched_pages, add_to_users
+from .logic import add_to_watched_pages, delete_from_watched_pages, add_to_users, login, self_info
 
 
 class WatchedPage(graphene.ObjectType):
@@ -27,11 +27,6 @@ class WatchedPage(graphene.ObjectType):
             return User(**result)
         return None
 
-    @classmethod
-    def get_node(cls, id, context, info):
-        result = list(mongo.db.watched_pages.find({"_id": id}))
-        return [WatchedPahedPge(**kwargs) for kwargs in result]
-
 
 class User(graphene.ObjectType):
     class Meta:
@@ -49,11 +44,6 @@ class User(graphene.ObjectType):
             return [WatchedPage(**kwargs) for kwargs in result]
         return None
 
-    @classmethod
-    def get_node(cls, id, context, info):
-        result = list(mongo.db.users.find({"_id": id}))
-        return [WatchedPage(**kwargs) for kwargs in result]
-
 
 class NewWatchedPage(graphene.Mutation):
     class Input:
@@ -63,15 +53,15 @@ class NewWatchedPage(graphene.Mutation):
         authentication = graphene.String(required=False)
         interval = graphene.String(required=False)
 
-    WatchedPage = graphene.Field(WatchedPage)
+    success = graphene.Boolean()
 
     @staticmethod
     def mutate(root, input, context, info):
         url = input.get('url')
         page_name = input.get('page_name')
         owner_name = input.get('owner_name')
-        new_page = add_to_watched_pages(owner_name, page_name, url)
-        return NewWatchedPage(WatchedPage=new_page)
+        result = add_to_watched_pages(owner_name, page_name, url)
+        return NewWatchedPage(success=result)
 
 
 class DeleteWatchedPage(graphene.Mutation):
@@ -79,14 +69,14 @@ class DeleteWatchedPage(graphene.Mutation):
         page_name = graphene.String(required=True)
         owner_name = graphene.String(required=True)
 
-    WatchedPage = graphene.Field(WatchedPage)
+    success = graphene.Boolean()
 
     @staticmethod
     def mutate(root, input, context, info):
         page_name = input.get('page_name')
         owner_name = input.get('owner_name')
-        deleted_page = delete_from_watched_pages(owner_name, page_name)
-        return DeleteWatchedPage(WatchedPage=deleted_page)
+        result = delete_from_watched_pages(owner_name, page_name)
+        return DeleteWatchedPage(success=result)
 
 
 class NewUser(graphene.Mutation):
@@ -95,21 +85,51 @@ class NewUser(graphene.Mutation):
         password = graphene.String(required=True)
         email = graphene.String(required=True)
 
-    User = graphene.Field(User)
+    success = graphene.Boolean()
 
     @staticmethod
     def mutate(root, input, context, info):
         username = input.get('username')
         password = input.get('password')
         email = input.get('email')
-        new_user = add_to_users(username, password, email)
-        return NewUser(User=new_user)
+        result = add_to_users(username, password, email)
+        return NewUser(success=result)
+
+
+class UserLogin(graphene.Mutation):
+    class Input:
+        username = graphene.String(required=True)
+        password = graphene.String(required=True)
+
+    token = graphene.String()
+
+    @staticmethod
+    def mutate(root, input, context, info):
+        username = input.get('username')
+        password = input.get('password')
+        result = login(username, password)
+        return UserLogin(token=result)
+
+
+class SelfInfo(graphene.Mutation):
+    class Input:
+        token = graphene.String()
+
+    User = graphene.Field(User)
+
+    @staticmethod
+    def mutate(root, input, context, info):
+        token = input.get('token')
+        result = self_info(token)
+        return SelfInfo(User=result)
 
 
 class Mutation(graphene.ObjectType):
     NewWatchedPage = NewWatchedPage.Field()
     DeleteWatchedPage = DeleteWatchedPage.Field()
     NewUser = NewUser.Field()
+    UserLogin = UserLogin.Field()
+    SelfInfo = SelfInfo.Field()
 
 
 class Query(graphene.ObjectType):
@@ -124,6 +144,7 @@ class Query(graphene.ObjectType):
                                   url=graphene.String()
                                   )
 
+    @staticmethod
     def resolve_users(self, args, context, info):
         query_dict = {}
         if args.get('username') is not None:
@@ -133,6 +154,7 @@ class Query(graphene.ObjectType):
             return [User(**kwargs) for kwargs in result]
         return None
 
+    @staticmethod
     def resolve_watched_pages(self, args, context, info):
         query_dict = {}
         if args.get('_id') is not None:
