@@ -6,6 +6,7 @@ import base64
 import pymongo
 
 
+
 @app.route('/')
 def hello_world():
     return '''Available links:
@@ -18,20 +19,65 @@ def hello_world():
     <li>/api/restartdb</li>
     <li>/api/graphql</li>
     </ul>
-    You can test the GraphQL functionality by visiting: /api/graphql?query={YOUR_QUERY},
-    for example:
+    You can test the GraphQL functionality by installing Google Chrome addon : <a href="https://chrome.google.com/webstore/detail/chromeiql/fkkiamalmpiidkljmicmjfbieiclmeij"> ChromeiQL</a>. <br>
+    Sample queries:
     <ul>
-    <li>/api/graphql?query={user{_id, password, email}}</li>
-    <li> /api/graphql?query={watched_page(owner_name:"guest"){_id, owner_name, page_name, url, interval}}</li>
+    <li>
+    query{
+        watched_pages
+        {
+            id
+            page_name
+            owner_name
+            url
+            authentication
+        }
+    }
+    </li>
+    <li>
+    query{
+        users
+        {
+             username
+             id
+        }
+    }
+    </li>
+
+    <li>
+     mutation{
+        NewWatchedPage(url:"www.mini.pw.edu.pl",page_name:"MiNi",owner_name:"guest")
+        {
+            WatchedPage
+            {
+                url
+            }
+        }
+     }
+     </li>
+     <li>
+     mutation{
+         NewUser(username:"Jack",password:"somesha1hash",email:"jack@10minutemails.com")
+         {
+            User
+            {
+                username,
+                password,
+                email
+            }
+        }
+     }
+     </li>
     </ul>
     '''
 
-#@app.route('/qwerty')
-#def show_collections():
-#    collection = mongo.db.collection_names()
-#    print('Is it working?', file=sys.stderr)
-#    print(collection, file=sys.stderr)
-#    return 'Check console for output'
+
+@app.route('/qwerty')
+def show_collections():
+    collection = mongo.db.collection_names()
+    print('Is it working?', file=sys.stderr)
+    print(collection, file=sys.stderr)
+    return 'Check console for output'
 
 
 @app.route('/adduser')
